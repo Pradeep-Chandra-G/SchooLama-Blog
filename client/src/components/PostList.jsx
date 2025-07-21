@@ -5,9 +5,6 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useSearchParams } from "react-router-dom";
 import { useMemo } from "react";
 
-const stringifiedSearchParams = useMemo(() => searchParams.toString(), [searchParams]);
-
-
 const fetchPosts = async (pageParam, searchParams) => {
   const searchParamsObj = Object.fromEntries([...searchParams]);
 
@@ -22,6 +19,7 @@ const fetchPosts = async (pageParam, searchParams) => {
 
 const PostList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const stringifiedSearchParams = useMemo(() => searchParams.toString(), [searchParams]);
 
   const {
     data,
