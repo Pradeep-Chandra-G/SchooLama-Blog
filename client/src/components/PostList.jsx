@@ -4,7 +4,7 @@ import axios from "axios";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useSearchParams } from "react-router-dom";
 import { useMemo } from "react";
-import {PostListItem} from "./PostListItem"
+import PostListItem from "./PostListItem"
 
 // Fetch function
 const fetchPosts = async (pageParam, searchParamsObj) => {
