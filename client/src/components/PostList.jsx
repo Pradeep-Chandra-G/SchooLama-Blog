@@ -1,25 +1,25 @@
-import PostListItem from "./PostListItem";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+// import PostListItem from "./PostListItem";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useSearchParams } from "react-router-dom";
 import { useMemo } from "react";
 
-const fetchPosts = async (pageParam, searchParams) => {
-  const searchParamsObj = Object.fromEntries([...searchParams]);
-
-  console.log(searchParamsObj);
-
+// Fetch function
+const fetchPosts = async (pageParam, searchParamsObj) => {
   const res = await axios.get(`${import.meta.env.VITE_API_URL}/posts`, {
     params: { page: pageParam, limit: 10, ...searchParamsObj },
   });
-  console.log("Fetched page data:", res.data);
   return res.data;
 };
 
 const PostList = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const stringifiedSearchParams = useMemo(() => searchParams.toString(), [searchParams]);
+  const [searchParams] = useSearchParams();
+
+  // Convert searchParams to a plain object (memoized)
+  const searchParamsObj = useMemo(() => {
+    return Object.fromEntries([...searchParams.entries()]);
+  }, [searchParams]);
 
   const {
     data,
@@ -28,24 +28,18 @@ const PostList = () => {
     hasNextPage,
     isFetching,
     isFetchingNextPage,
-    status,
   } = useInfiniteQuery({
-    queryKey: ["posts", stringifiedSearchParams],
-    queryFn: ({ pageParam = 1 }) => fetchPosts(pageParam, searchParams),
+    queryKey: ["posts", searchParamsObj], // use plain object for caching
+    queryFn: ({ pageParam = 1 }) => fetchPosts(pageParam, searchParamsObj),
     initialPageParam: 1,
     getNextPageParam: (lastPage, pages) =>
       lastPage.hasMore ? pages.length + 1 : undefined,
   });
 
-  // if (status === "loading") return "Loading...";
-  if (isFetching) return "Loading...";
-  
-
-  // if (status === "error") return "Something went wrong!";
-  if (error) return "Something went wrong!";
+  if (isFetching && !data) return <p>Loading...</p>;
+  if (error) return <p>Something went wrong!</p>;
 
   const allPosts = data?.pages?.flatMap((page) => page.posts) || [];
-  console.log("All posts: ", allPosts);
 
   return (
     <InfiniteScroll
