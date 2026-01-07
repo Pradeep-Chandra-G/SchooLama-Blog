@@ -11,7 +11,7 @@ const Navbar = () => {
     <div className="w-full h-16 md:h-20 flex items-center justify-between relative z-50">
       {/* LOGO */}
       <Link to="/" className="flex items-center gap-4 text-2xl font-bold">
-        <Image src="schoolama_logo.svg" alt="SchooLama Blog Logo" w={32} h={32} />
+        <Image src="schoolama_logo.svg" w={32} h={32} />
         <span>SchooLama Blog</span>
       </Link>
 
@@ -47,11 +47,28 @@ const Navbar = () => {
             open ? "-right-0" : "-right-[100%]"
           }`}
         >
-          <Link to="/" onClick={() => setOpen(false)}>Home</Link>
-          <Link to="/write" onClick={() => setOpen(false)}>Write A Post</Link>
-          <Link to="/posts?sort=trending" onClick={() => setOpen(false)}>Trending</Link>
-          <Link to="/posts?sort=popular" onClick={() => setOpen(false)}>Most Popular</Link>
-          <Link to="/" onClick={() => setOpen(false)}>About</Link>
+          <Link to="/" onClick={() => setOpen(false)}>
+            Home
+          </Link>
+          <Link to="/posts" onClick={() => setOpen(false)}>
+            All Posts
+          </Link>
+          <Link to="/posts?sort=trending" onClick={() => setOpen(false)}>
+            Trending
+          </Link>
+          <Link to="/posts?sort=popular" onClick={() => setOpen(false)}>
+            Most Popular
+          </Link>
+
+          {/* Saved Posts - Only show when signed in */}
+          <SignedIn>
+            <Link to="/saved" onClick={() => setOpen(false)}>
+              <span className="flex items-center gap-2">Saved Posts</span>
+            </Link>
+            <Link to="/write" onClick={() => setOpen(false)}>
+              Write A Post
+            </Link>
+          </SignedIn>
 
           {/* Login if signed out */}
           <SignedOut>
@@ -64,7 +81,10 @@ const Navbar = () => {
 
           {/* User button + username if signed in */}
           <SignedIn>
-            <div className="flex flex-col items-center gap-2" onClick={() => setOpen(false)}>
+            <div
+              className="flex flex-col items-center gap-2"
+              onClick={() => setOpen(false)}
+            >
               <UserButton />
               {user && (
                 <span className="text-black text-sm font-semibold">
@@ -81,7 +101,11 @@ const Navbar = () => {
         <Link to="/">Home</Link>
         <Link to="/posts?sort=trending">Trending</Link>
         <Link to="/posts?sort=popular">Most Popular</Link>
-        <Link to="/">About</Link>
+        <SignedIn>
+          <Link to="/saved" className="flex items-center gap-1">
+            Saved
+          </Link>
+        </SignedIn>
         <SignedOut>
           <Link to="/login">
             <button className="py-2 px-4 rounded-3xl bg-blue-800 text-white">
@@ -93,20 +117,6 @@ const Navbar = () => {
           <UserButton />
         </SignedIn>
       </div>
-
-      {/* GLOW ANIMATION */}
-      <style>
-        {`
-          @keyframes glow {
-            0% { text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00; }
-            50% { text-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00; }
-            100% { text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00; }
-          }
-          .animate-glow {
-            animation: glow 1.5s infinite alternate;
-          }
-        `}
-      </style>
     </div>
   );
 };

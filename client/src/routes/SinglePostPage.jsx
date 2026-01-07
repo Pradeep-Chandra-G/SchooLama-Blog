@@ -7,8 +7,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "timeago.js";
 import parse from "html-react-parser";
-import DOMPurify from "dompurify"; // optional for added safety
-
+import DOMPurify from "dompurify";
 
 const fetchPost = async (slug) => {
   const res = await axios.get(`${import.meta.env.VITE_API_URL}/posts/${slug}`);
@@ -35,19 +34,53 @@ const SinglePostPage = () => {
     queryFn: () => fetchPost(slug),
   });
 
-  console.log("DATA:       ",data);
-  console.log("ERROR:     ", error);
-
   if (isPending) return "loading...";
   if (error) return "Something went wrong!" + error.message;
   if (!data) return "Post not found!";
 
-  const cleanHTML = DOMPurify.sanitize(data?.content || "<p>No description available.</p>", {
-  ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'ul', 'ol', 'li', 'br', 'img', 'video', 'source', 'iframe', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'blockquote', 'span'],
-  ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'target', 'controls', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen'],
-});
+  const cleanHTML = DOMPurify.sanitize(
+    data?.content || "<p>No description available.</p>",
+    {
+      ALLOWED_TAGS: [
+        "b",
+        "i",
+        "em",
+        "strong",
+        "a",
+        "p",
+        "ul",
+        "ol",
+        "li",
+        "br",
+        "img",
+        "video",
+        "source",
+        "iframe",
+        "pre",
+        "code",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "blockquote",
+        "span",
+      ],
+      ALLOWED_ATTR: [
+        "href",
+        "src",
+        "alt",
+        "title",
+        "target",
+        "controls",
+        "width",
+        "height",
+        "frameborder",
+        "allow",
+        "allowfullscreen",
+      ],
+    }
+  );
 
-    console.log("HTML: ",cleanHTML);
   return (
     <div className="flex flex-col gap-8 mr-4">
       {/* detail */}
@@ -58,9 +91,16 @@ const SinglePostPage = () => {
           </h1>
           <div className="flex items-center gap-2 text-gray-400 text-sm">
             <span>Written by</span>
-            <Link className="text-blue-800">{data.user.username}</Link>
+            <Link
+              className="text-blue-800 hover:underline"
+              to={`/profile/${data.user.username}`}
+            >
+              {data.user.username}
+            </Link>
             <span>on</span>
-            <Link className="text-blue-800">{data.category}</Link>
+            <Link className="text-blue-800" to={`/posts?cat=${data.category}`}>
+              {data.category}
+            </Link>
             <span>{format(data.createdAt)}</span>
           </div>
           <p className="text-gray-500 font-medium">{data.desc}</p>
@@ -74,14 +114,19 @@ const SinglePostPage = () => {
       {/* content */}
       <div className="flex flex-col md:flex-row gap-12 justify-between">
         {/* text */}
-        <div className="prose prose-lg max-w-full text-justify prose-img:rounded-xl prose-img:mx-auto prose-video:rounded-xl prose-video:mx-auto"  style={{
+        <div
+          className="prose prose-lg max-w-full text-justify prose-img:rounded-xl prose-img:mx-auto prose-video:rounded-xl prose-video:mx-auto"
+          style={{
             wordBreak: "break-word",
             overflowWrap: "break-word",
-        }}>
-            {parse(transformContent(data?.content || "<p>No description available.</p>"))}
+          }}
+        >
+          {parse(
+            transformContent(
+              data?.content || "<p>No description available.</p>"
+            )
+          )}
         </div>
-
-
 
         {/* menu */}
         <div className="px-4 h-max sticky top-8">
@@ -96,10 +141,15 @@ const SinglePostPage = () => {
                   h="48"
                 />
               )}
-              <Link className="text-blue-800">{data.user.username}</Link>
+              <Link
+                className="text-blue-800 hover:underline"
+                to={`/profile/${data.user.username}`}
+              >
+                {data.user.username}
+              </Link>
             </div>
             <p className="text-sm text-gray-500">
-              Something
+              View all posts by this author
             </p>
             <div className="flex gap-2">
               <Link>
@@ -110,23 +160,25 @@ const SinglePostPage = () => {
               </Link>
             </div>
           </div>
-          <PostMenuActions post={data}/>
+          <PostMenuActions post={data} />
           <h1 className="mt-8 mb-4 text-sm font-medium">Categories</h1>
           <div className="flex flex-col gap-2 text-sm">
-            <Link className="underline">All</Link>
-            <Link className="underline" to="/">
+            <Link className="underline" to="/posts">
+              All
+            </Link>
+            <Link className="underline" to="/posts?cat=web-design">
               Web Design
             </Link>
-            <Link className="underline" to="/">
+            <Link className="underline" to="/posts?cat=development">
               Development
             </Link>
-            <Link className="underline" to="/">
+            <Link className="underline" to="/posts?cat=databases">
               Databases
             </Link>
-            <Link className="underline" to="/">
+            <Link className="underline" to="/posts?cat=seo">
               Search Engines
             </Link>
-            <Link className="underline" to="/">
+            <Link className="underline" to="/posts?cat=marketing">
               Marketing
             </Link>
           </div>
@@ -134,7 +186,7 @@ const SinglePostPage = () => {
           <Search />
         </div>
       </div>
-      <Comments postId={data._id}/>
+      <Comments postId={data._id} />
     </div>
   );
 };

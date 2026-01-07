@@ -15,7 +15,7 @@ const PostListPage = () => {
         {open ? "Close" : "Filter or Search"}
       </button>
       <div className="flex flex-col-reverse gap-8 md:flex-row justify-between">
-        <div className="">
+        <div className="h-full w-full">
           <PostList />
         </div>
         <div className={`${open ? "block" : "hidden"} md:block`}>

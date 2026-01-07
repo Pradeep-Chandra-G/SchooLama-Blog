@@ -5,16 +5,29 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Homepage from "./routes/Homepage.jsx";
 import PostListPage from "./routes/PostListPage.jsx";
 import Write from "./routes/Write.jsx";
+import EditPost from "./routes/EditPost.jsx";
 import LoginPage from "./routes/LoginPage.jsx";
 import RegisterPage from "./routes/RegisterPage.jsx";
 import SinglePostPage from "./routes/SinglePostPage.jsx";
+import SavedPostsPage from "./routes/SavedPostsPage.jsx";
+import UserProfilePage from "./routes/UserProfilePage.jsx";
 import MainLayout from "./layouts/MainLayout.jsx";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  },
+});
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -41,6 +54,18 @@ const router = createBrowserRouter([
       {
         path: "/write",
         element: <Write />,
+      },
+      {
+        path: "/edit/:slug",
+        element: <EditPost />,
+      },
+      {
+        path: "/saved",
+        element: <SavedPostsPage />,
+      },
+      {
+        path: "/profile/:username",
+        element: <UserProfilePage />,
       },
       {
         path: "/login",
