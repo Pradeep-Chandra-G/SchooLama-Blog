@@ -20,6 +20,9 @@ app.use(
 app.use(clerkMiddleware());
 app.use("/webhooks", webhookRouter);
 app.use(express.json());
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
 
 app.use("/users", userRouter);
 app.use("/posts", postRouter);

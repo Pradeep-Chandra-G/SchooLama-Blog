@@ -4,11 +4,9 @@ import User from "../models/user.model.js";
 
 export const getPosts = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 2;
+  const limit = parseInt(req.query.limit) || 10;
 
   const query = {};
-
-  console.log(req.query);
 
   const cat = req.query.cat;
   const author = req.query.author;
@@ -21,7 +19,11 @@ export const getPosts = async (req, res) => {
   }
 
   if (searchQuery) {
-    query.title = { $regex: searchQuery, $options: "i" };
+    query.$or = [
+      { title: { $regex: searchQuery, $options: "i" } },
+      { desc: { $regex: searchQuery, $options: "i" } },
+      { content: { $regex: searchQuery, $options: "i" } },
+    ];
   }
 
   if (author) {
@@ -34,13 +36,14 @@ export const getPosts = async (req, res) => {
     query.user = user._id;
   }
 
+  if (featured) {
+    query.isFeatured = true;
+  }
+
   let sortObj = { createdAt: -1 };
 
   if (sortQuery) {
     switch (sortQuery) {
-      case "newest":
-        sortObj = { createdAt: -1 };
-        break;
       case "oldest":
         sortObj = { createdAt: 1 };
         break;
@@ -48,30 +51,31 @@ export const getPosts = async (req, res) => {
         sortObj = { visit: -1 };
         break;
       case "trending":
-        sortObj = { visit: -1 };
-        query.createdAt = {
-          $gte: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000),
-        };
+        sortObj = { visit: -1, createdAt: -1 };
         break;
       default:
-        break;
+        sortObj = { createdAt: -1 };
     }
   }
 
-  if (featured) {
-    query.isFeatured = true;
-  }
+  // ✅ COUNT FIRST (important)
+  const totalPosts = await Post.countDocuments(query);
 
+  // ✅ PAGINATED DATA
   const posts = await Post.find(query)
     .populate("user", "username")
     .sort(sortObj)
     .limit(limit)
     .skip((page - 1) * limit);
 
-  const totalPosts = await Post.countDocuments();
   const hasMore = page * limit < totalPosts;
 
-  res.status(200).json({ posts, hasMore });
+  // ✅ RETURN TOTAL POSTS
+  res.status(200).json({
+    posts,
+    hasMore,
+    totalPosts,
+  });
 };
 
 export const getPost = async (req, res) => {
@@ -113,6 +117,43 @@ export const createPost = async (req, res) => {
 
   const post = await newPost.save();
   res.status(200).json(post);
+};
+
+export const updatePost = async (req, res) => {
+  const clerkUserId = req.auth.userId;
+
+  if (!clerkUserId) {
+    return res.status(401).json("Not authenticated!");
+  }
+
+  const user = await User.findOne({ clerkUserId });
+
+  const post = await Post.findById(req.params.id);
+
+  if (!post) {
+    return res.status(404).json("Post not found!");
+  }
+
+  // Check if user owns the post or is admin
+  const role = req.auth.sessionClaims?.metadata?.role || "user";
+  if (post.user.toString() !== user._id.toString() && role !== "admin") {
+    return res.status(403).json("You can only edit your own posts!");
+  }
+
+  // Update the post
+  const updatedPost = await Post.findByIdAndUpdate(
+    req.params.id,
+    {
+      title: req.body.title,
+      desc: req.body.desc,
+      img: req.body.img,
+      category: req.body.category,
+      content: req.body.content,
+    },
+    { new: true }
+  );
+
+  res.status(200).json(updatedPost);
 };
 
 export const deletePost = async (req, res) => {
@@ -177,9 +218,9 @@ export const featurePost = async (req, res) => {
 };
 
 const imagekit = new ImageKit({
-  urlEndpoint: process.env.IK_URL_ENDPOINT,
-  publicKey: process.env.IK_PUBLIC_KEY,
-  privateKey: process.env.IK_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
 });
 
 export const uploadAuth = async (req, res) => {

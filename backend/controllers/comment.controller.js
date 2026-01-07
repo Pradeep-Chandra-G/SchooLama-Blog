@@ -45,7 +45,7 @@ export const deleteComment = async (req, res) => {
     return res.status(200).json("Comment has been deleted");
   }
 
-  const user = User.findOne({ clerkUserId });
+  const user = await User.findOne({ clerkUserId }); // FIXED: Added await
 
   const deletedComment = await Comment.findOneAndDelete({
     _id: id,
